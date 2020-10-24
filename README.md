@@ -10,7 +10,8 @@ Dataset used in this project is Bankmarketing which consists of customer informa
 Solution approach will be to build and train Logistic regression predictive model using two approaches Hyperdrive and Automl. Best performing model from both approaches will be chosen as final solution model.   
 
 ## Scikit-learn Pipeline
-**Explain the pipeline architecture, including data, hyperparameter tuning, and classification algorithm.**
+
+![Diagram](Diagram.JPG)    
 
 Hyperdrive pipleline is created using python sdk library. First reference to workspace and experiment is obtained. Compute cluster is created with VM_Size="STANDARD_D2_V2" and max number of nodes=4 and min number of nodes=1. 
 Its CPU cluster where training will be executed using parameters specified in hyperdrive drive configuration. 
@@ -50,7 +51,13 @@ ps = RandomParameterSampling( {
 For the chosen Logistic Regression algorithm we set the range of discrete values for 'max_iter' and 'C' parameter as shown below: 
 
   - max_iter: Represents max runs for the experiment for specified iterations. Range of (10,20,30) is chosen to restrict the duration for which experiment runs. 
-  - C: Represnets the regularization parameter. The strength of the regularization is inversely proportional to C. Must be strictly positive. The penalty is a squared l2 penalty.   
+  - C: Represnets the regularization parameter. The strength of the regularization is inversely proportional to C. Must be strictly positive. The penalty is a squared l2 penalty.
+
+### Benefits of using Random Sampling: 
+- Random search is a technique where random combinations of the hyperparameters are used to find the best solution for the built model. It is similar to grid search, and yet it has proven to yield better results comparatively.
+- As random values are selected at each instance, it is highly likely that the whole of action space has been reached because of the randomness, which takes a huge amount of time to cover every aspect of the combination during grid search. This works best under the assumption that not all hyperparameters are equally important.
+- In this search pattern, random combinations of parameters are considered in every iteration. The chances of finding the optimal parameter are comparatively higher in random search because of the random search pattern where the model might end up being trained on the optimised parameters without any aliasing.
+
 
 BanditPolicy is chosen as early stopping Policy for hperdrive experiment run. 
 It defines an early termination policy based on slack criteria, and a frequency and delay interval for evaluation.
@@ -64,6 +71,12 @@ The Bandit policy takes the following configuration parameters:
 - evaluation_interval: The frequency for applying the policy. Each time the training script logs the primary metric counts as one interval.
 
 - delay_evaluation: The number of intervals to delay policy evaluation. Use this parameter to avoid premature termination of training runs. If specified, the policy applies every multiple of evaluation_interval that is greater than or equal to delay_evaluation.
+
+### Benefits of using Bandit Policy: 
+- Bandit policy is based on slack factor/slack amount and evaluation interval. Bandit terminates runs where the primary metric is not within the specified slack factor/slack amount compared to the best performing run.
+- In this project, the early termination policy is applied at every interval when metrics are reported, starting at evaluation interval 5. Any run whose best metric is less than (1/(1+0.1) or 91% of the best performing run will be terminated.
+- This Policy ensures that experiment is not terminated too early at the sametime it does not indefinately for long hours without improvements.
+
 
 ## AutoML
 AutoML settings represents the configuration for submitting an automated ML experiment in Azure Machine Learning. This configuration object contains and persists the parameters for configuring the experiment run, as well as the training data to be used at run time. 
@@ -117,6 +130,19 @@ Auto ML experiment ran for 75 different model algorithm as we can see from the o
 Hyperdrive experiment gave best score of 0.9144 with following best parameter estimates: 
 
  Best Params: ['--C', '1', '--max_iter', '30']
+
+### Voting Ensembles
+
+A voting ensemble (or a “majority voting ensemble“) is an ensemble machine learning model that combines the predictions from multiple other models.
+
+It is a technique that may be used to improve model performance, ideally achieving better performance than any single model used in the ensemble.
+
+A voting ensemble works by combining the predictions from multiple models. It can be used for classification or regression. In the case of regression, this involves calculating the average of the predictions from the models. In the case of classification, the predictions for each label are summed and the label with the majority vote is predicted.
+
+    Regression Voting Ensemble: Predictions are the average of contributing models.
+    Classification Voting Ensemble: Predictions are the majority vote of contributing models.
+
+In this project Classification Voting Ensemble technique is used by AutoML experiment to acheieve best accuracy score. One of the model used by VotingEnsemble in this experiment is XGBoostClassifier.                       
 
 ## Future work
 
